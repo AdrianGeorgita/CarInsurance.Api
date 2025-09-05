@@ -13,4 +13,5 @@ public class Car
 
     public ICollection<InsurancePolicy> Policies { get; set; } = new List<InsurancePolicy>();
     public ICollection<InsuranceClaim> Claims { get; set; } = new List<InsuranceClaim>();
+    public ICollection<CarOwnershipChange> OwnershipChanges { get; set; } = new List<CarOwnershipChange>();
 }

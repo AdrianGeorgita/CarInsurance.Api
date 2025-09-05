@@ -55,6 +55,7 @@ public class CarService(AppDbContext db)
         var car = await _db.Cars
             .Include(c => c.Policies)
             .Include(c => c.Claims)
+            .Include(c => c.OwnershipChanges)
             .FirstOrDefaultAsync(c => c.Id == carId);
 
         if(car == null)
@@ -66,8 +67,7 @@ public class CarService(AppDbContext db)
                 Id: p.Id,
                 Date: p.StartDate.ToString("yyyy-MM-dd"),
                 EndDate: p.EndDate.ToString("yyyy-MM-dd"),
-                Description: $"Policy from {p.Provider}",
-                Amount: null
+                Description: $"Policy from {p.Provider}"
             ));
 
         var claimItems = car.Claims
@@ -75,13 +75,21 @@ public class CarService(AppDbContext db)
                 Type: "Claim",
                 Id: p.Id,
                 Date: p.ClaimDate.ToString("yyyy-MM-dd"),
-                EndDate: null,
                 Description: p.Description,
                 Amount: p.Amount
             ));
 
+        var ownershipItems = car.OwnershipChanges
+            .Select(o => new CarHistoryResponse(
+                Type: "Ownership",
+                Id: o.Id,
+                Date: o.ChangeDate.ToString("yyyy-MM-dd"),
+                Description: $"Owner changed to {o.NewOwnerId}"
+            ));
+
         var history = policyItems
            .Concat(claimItems)
+           .Concat(ownershipItems)
            .OrderBy(item => item.Date)
            .ToList();
 
@@ -98,7 +106,17 @@ public class CarService(AppDbContext db)
         if (!newOwnerExists)
             throw new KeyNotFoundException($"Owner {newOwnerId} not found");
 
+        var previousOwnerId = car.OwnerId;
         car.OwnerId = newOwnerId;
+
+        _db.OwnershipChanges.Add(new CarOwnershipChange
+        {
+            CarId = carId,
+            PreviousOwnerId = previousOwnerId,
+            NewOwnerId = newOwnerId,
+            ChangeDate = DateOnly.FromDateTime(DateTime.Now)
+        }); ;
+
         await _db.SaveChangesAsync();
     }
 }

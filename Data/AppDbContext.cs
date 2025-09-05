@@ -11,6 +11,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     public DbSet<InsuranceClaim> Claims => Set<InsuranceClaim>();
 
+    public DbSet<CarOwnershipChange> OwnershipChanges => Set<CarOwnershipChange>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Car>()
@@ -44,6 +46,10 @@ public static class SeedData
         var car1 = new Car { Vin = "VIN12345", Make = "Dacia", Model = "Logan", YearOfManufacture = 2018, OwnerId = ana.Id };
         var car2 = new Car { Vin = "VIN67890", Make = "VW", Model = "Golf", YearOfManufacture = 2021, OwnerId = bogdan.Id };
         db.Cars.AddRange(car1, car2);
+        db.SaveChanges();
+
+        db.OwnershipChanges.Add(new CarOwnershipChange { CarId = car1.Id, Car = car1, PreviousOwnerId = null, NewOwnerId = ana.Id, ChangeDate = new DateOnly(2023, 12, 31)});
+        db.OwnershipChanges.Add(new CarOwnershipChange { CarId = car2.Id, Car = car2, PreviousOwnerId = null, NewOwnerId = bogdan.Id, ChangeDate = new DateOnly(2025, 2, 28) });
         db.SaveChanges();
 
         db.Policies.AddRange(

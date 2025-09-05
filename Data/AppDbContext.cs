@@ -13,10 +13,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     {
         modelBuilder.Entity<Car>()
             .HasIndex(c => c.Vin)
-            .IsUnique(false); // TODO: set true and handle conflicts
+            .IsUnique(true); // TODO: set true and handle conflicts
 
         modelBuilder.Entity<InsurancePolicy>()
             .Property(p => p.StartDate)
+            .IsRequired();
+
+        modelBuilder.Entity<InsurancePolicy>()
+            .Property(p => p.EndDate)
             .IsRequired();
 
         // EndDate intentionally left nullable for a later task
@@ -41,7 +45,7 @@ public static class SeedData
 
         db.Policies.AddRange(
             new InsurancePolicy { CarId = car1.Id, Provider = "Allianz", StartDate = new DateOnly(2024,1,1), EndDate = new DateOnly(2024,12,31) },
-            new InsurancePolicy { CarId = car1.Id, Provider = "Groupama", StartDate = new DateOnly(2025,1,1), EndDate = null }, // open-ended on purpose
+            new InsurancePolicy { CarId = car1.Id, Provider = "Groupama", StartDate = new DateOnly(2025,1,1), EndDate = new DateOnly(2025, 2, 1) }, // open-ended on purpose
             new InsurancePolicy { CarId = car2.Id, Provider = "Allianz", StartDate = new DateOnly(2025,3,1), EndDate = new DateOnly(2025,9,30) }
         );
         db.SaveChanges();

@@ -119,4 +119,33 @@ public class CarService(AppDbContext db)
 
         await _db.SaveChangesAsync();
     }
+
+    public async Task<InsurancePolicy> RegisterInsurancePolicy(long carId, InsurancePolicyDto dto)
+    {
+        var carExists = await _db.Cars.AnyAsync(c => c.Id == carId);
+        if (!carExists) throw new KeyNotFoundException($"Car {carId} not found");
+
+        if (!DateOnly.TryParse(dto.StartDate, out var startDate) || !DateOnly.TryParse(dto.EndDate, out var endDate))
+            throw new ArgumentException("Invalid claim date format.");
+
+        bool overlaps = await _db.Policies
+        .AnyAsync(p => p.CarId == carId &&
+                       p.StartDate <= endDate &&
+                       p.EndDate >= startDate);
+
+        if (overlaps)
+            throw new InvalidOperationException("Overlapping policy.");
+
+        var policy = new InsurancePolicy
+        {
+            CarId = carId,
+            StartDate = startDate,
+            EndDate = endDate,
+            Provider = dto.Provider
+        };
+
+        _db.Policies.Add(policy);
+        await _db.SaveChangesAsync();
+        return policy;
+    }
 }

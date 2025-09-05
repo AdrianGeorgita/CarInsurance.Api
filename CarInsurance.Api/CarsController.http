@@ -9,3 +9,34 @@ Accept: application/json
 ### Get car history
 GET https://localhost:61341/api/cars/1/history
 Accept: application/json
+
+### Register a claim to a car
+POST https://localhost:61341/api/cars/1/claims
+Content-Type: application/json
+Accept: application/json
+
+{
+    "ClaimDate": "2025-1-5",
+    "Description": "A simple insurance claim",
+    "Amount": 500
+}
+
+### Change a car's ownership
+PATCH https://localhost:61341/api/cars/1/
+Content-Type: application/json
+Accept: application/json
+
+{
+    "NewOwnerId": 3
+}
+
+### Register a new policy to a car
+POST https://localhost:61341/api/cars/1/policies
+Content-Type: application/json
+Accept: application/json
+
+{
+    "Provider": "Groupama",
+    "StartDate": "2025-1-2",
+    "EndDate": "2025-3-2"
+}

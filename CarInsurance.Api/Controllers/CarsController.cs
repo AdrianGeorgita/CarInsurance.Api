@@ -63,6 +63,10 @@ public class CarsController(CarService service) : ControllerBase
         {
             return NotFound($"Car {carId} not found");
         }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpGet("cars/{carId:long}/history")]
@@ -98,6 +102,40 @@ public class CarsController(CarService service) : ControllerBase
         catch (KeyNotFoundException)
         {
             return NotFound($"Car {carId} not found");
+        }
+    }
+
+    [HttpPost("cars/{carId:long}/policies")]
+    public async Task<ActionResult> RegisterInsurancePolicy(long carId, [FromBody] InsurancePolicyDto dto)
+    {
+        if (carId < 1)
+            return UnprocessableEntity("Invalid car Id. Ids must be positive values!");
+
+        if (!DateOnly.TryParse(dto.StartDate, out var parsedStartDate) || !DateOnly.TryParse(dto.EndDate, out var parsedEndDate))
+            return BadRequest("Invalid date or format. Use YYYY-MM-DD.");
+
+        if(parsedStartDate > parsedEndDate)
+            return UnprocessableEntity("Invalid dates! The start date must be before the end date.");
+
+        if (dto.Provider?.Length > 64)
+            return UnprocessableEntity("Provider name length exceeded.");
+
+        try
+        {
+            var policy = await _service.RegisterInsurancePolicy(carId, dto);
+            return CreatedAtAction(nameof(RegisterInsurancePolicy), new { carId = carId, policyId = policy.Id }, policy);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound($"Car {carId} not found");
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(ex.Message);
         }
     }
 }

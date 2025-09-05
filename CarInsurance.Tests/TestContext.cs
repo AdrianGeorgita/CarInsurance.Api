@@ -1,4 +1,5 @@
 ﻿using CarInsurance.Api.Data;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
 namespace CarInsurance.Tests
@@ -6,12 +7,13 @@ namespace CarInsurance.Tests
     public static class TestContext
     {
 
-        private static readonly string DbFile = "TestCarInsurance.db";
-
         public static AppDbContext Create()
         {
+            var connection = new SqliteConnection("DataSource=:memory:");
+            connection.Open();
+
             var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseSqlite($"Data Source={DbFile}")
+            .UseSqlite(connection)
             .Options;
 
             var context = new AppDbContext(options);

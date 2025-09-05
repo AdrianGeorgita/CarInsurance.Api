@@ -13,6 +13,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     public DbSet<CarOwnershipChange> OwnershipChanges => Set<CarOwnershipChange>();
 
+    public DbSet<PolicyExpirationLog> PolicyExpirationLogs => Set<PolicyExpirationLog>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Car>()

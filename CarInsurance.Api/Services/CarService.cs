@@ -96,7 +96,7 @@ public class CarService(AppDbContext db)
         return history ?? new List<CarHistoryResponse> { };
     }
 
-    public async Task UpdateCarOwner(long carId, long newOwnerId)
+    public async Task<bool> UpdateCarOwner(long carId, long newOwnerId)
     {
         var car = await _db.Cars.FindAsync(carId);
         if (car == null)
@@ -105,6 +105,9 @@ public class CarService(AppDbContext db)
         var newOwnerExists = await _db.Owners.AnyAsync(o => o.Id == newOwnerId);
         if (!newOwnerExists)
             throw new KeyNotFoundException($"Owner {newOwnerId} not found");
+
+        if (car.OwnerId == newOwnerId)
+            throw new InvalidOperationException("The new owner can't be the same as the previous owner");
 
         var previousOwnerId = car.OwnerId;
         car.OwnerId = newOwnerId;
@@ -118,6 +121,7 @@ public class CarService(AppDbContext db)
         }); ;
 
         await _db.SaveChangesAsync();
+        return true;
     }
 
     public async Task<InsurancePolicy> RegisterInsurancePolicy(long carId, InsurancePolicyDto dto)

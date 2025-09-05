@@ -37,6 +37,6 @@ Accept: application/json
 
 {
     "Provider": "Groupama",
-    "StartDate": "2025-1-2",
-    "EndDate": "2025-3-2"
+    "StartDate": "2025-10-1",
+    "EndDate": "2025-11-1"
 }

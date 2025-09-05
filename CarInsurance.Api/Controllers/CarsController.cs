@@ -103,6 +103,10 @@ public class CarsController(CarService service) : ControllerBase
         {
             return NotFound($"Car {carId} not found");
         }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(ex.Message);
+        }
     }
 
     [HttpPost("cars/{carId:long}/policies")]

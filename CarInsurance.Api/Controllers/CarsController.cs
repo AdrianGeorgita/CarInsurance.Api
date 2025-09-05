@@ -19,7 +19,10 @@ public class CarsController(CarService service) : ControllerBase
     public async Task<ActionResult<InsuranceValidityResponse>> IsInsuranceValid(long carId, [FromQuery] string date)
     {
         if (!DateOnly.TryParse(date, out var parsed))
-            return BadRequest("Invalid date format. Use YYYY-MM-DD.");
+            return BadRequest("Invalid date or format. Use YYYY-MM-DD.");
+
+        if ((parsed > DateOnly.FromDateTime(DateTime.Now.AddYears(1)) || (parsed < DateOnly.MinValue)))
+            return BadRequest("Invalid date. You can only check validity up to 1 year in the future.");
 
         try
         {
@@ -28,7 +31,7 @@ public class CarsController(CarService service) : ControllerBase
         }
         catch (KeyNotFoundException)
         {
-            return NotFound();
+            return NotFound($"Car {carId} not found");
         }
     }
 

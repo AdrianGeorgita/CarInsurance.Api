@@ -9,14 +9,24 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Car> Cars => Set<Car>();
     public DbSet<InsurancePolicy> Policies => Set<InsurancePolicy>();
 
+    public DbSet<InsuranceClaim> Claims => Set<InsuranceClaim>();
+
+    public DbSet<CarOwnershipChange> OwnershipChanges => Set<CarOwnershipChange>();
+
+    public DbSet<PolicyExpirationLog> PolicyExpirationLogs => Set<PolicyExpirationLog>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Car>()
             .HasIndex(c => c.Vin)
-            .IsUnique(false); // TODO: set true and handle conflicts
-
+            .IsUnique(true); // TODO: set true and handle conflicts
+        
         modelBuilder.Entity<InsurancePolicy>()
             .Property(p => p.StartDate)
+            .IsRequired();
+
+        modelBuilder.Entity<InsurancePolicy>()
+            .Property(p => p.EndDate)
             .IsRequired();
 
         // EndDate intentionally left nullable for a later task
@@ -31,7 +41,8 @@ public static class SeedData
 
         var ana = new Owner { Name = "Ana Pop", Email = "ana.pop@example.com" };
         var bogdan = new Owner { Name = "Bogdan Ionescu", Email = "bogdan.ionescu@example.com" };
-        db.Owners.AddRange(ana, bogdan);
+        var andrei = new Owner { Name = "Andrei Popescu", Email = "andrei.popescu@example.com" };
+        db.Owners.AddRange(ana, bogdan, andrei);
         db.SaveChanges();
 
         var car1 = new Car { Vin = "VIN12345", Make = "Dacia", Model = "Logan", YearOfManufacture = 2018, OwnerId = ana.Id };
@@ -39,9 +50,13 @@ public static class SeedData
         db.Cars.AddRange(car1, car2);
         db.SaveChanges();
 
+        db.OwnershipChanges.Add(new CarOwnershipChange { CarId = car1.Id, Car = car1, PreviousOwnerId = null, NewOwnerId = ana.Id, ChangeDate = new DateOnly(2023, 12, 31)});
+        db.OwnershipChanges.Add(new CarOwnershipChange { CarId = car2.Id, Car = car2, PreviousOwnerId = null, NewOwnerId = bogdan.Id, ChangeDate = new DateOnly(2025, 2, 28) });
+        db.SaveChanges();
+
         db.Policies.AddRange(
             new InsurancePolicy { CarId = car1.Id, Provider = "Allianz", StartDate = new DateOnly(2024,1,1), EndDate = new DateOnly(2024,12,31) },
-            new InsurancePolicy { CarId = car1.Id, Provider = "Groupama", StartDate = new DateOnly(2025,1,1), EndDate = null }, // open-ended on purpose
+            new InsurancePolicy { CarId = car1.Id, Provider = "Groupama", StartDate = new DateOnly(2025,1,1), EndDate = new DateOnly(2025, 2, 1) }, // open-ended on purpose
             new InsurancePolicy { CarId = car2.Id, Provider = "Allianz", StartDate = new DateOnly(2025,3,1), EndDate = new DateOnly(2025,9,30) }
         );
         db.SaveChanges();

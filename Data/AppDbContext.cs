@@ -9,12 +9,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Car> Cars => Set<Car>();
     public DbSet<InsurancePolicy> Policies => Set<InsurancePolicy>();
 
+    public DbSet<InsuranceClaim> Claims => Set<InsuranceClaim>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Car>()
             .HasIndex(c => c.Vin)
             .IsUnique(true); // TODO: set true and handle conflicts
-
+        
         modelBuilder.Entity<InsurancePolicy>()
             .Property(p => p.StartDate)
             .IsRequired();
@@ -35,7 +37,8 @@ public static class SeedData
 
         var ana = new Owner { Name = "Ana Pop", Email = "ana.pop@example.com" };
         var bogdan = new Owner { Name = "Bogdan Ionescu", Email = "bogdan.ionescu@example.com" };
-        db.Owners.AddRange(ana, bogdan);
+        var andrei = new Owner { Name = "Andrei Popescu", Email = "andrei.popescu@example.com" };
+        db.Owners.AddRange(ana, bogdan, andrei);
         db.SaveChanges();
 
         var car1 = new Car { Vin = "VIN12345", Make = "Dacia", Model = "Logan", YearOfManufacture = 2018, OwnerId = ana.Id };

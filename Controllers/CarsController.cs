@@ -1,6 +1,7 @@
 using CarInsurance.Api.Dtos;
 using CarInsurance.Api.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace CarInsurance.Api.Controllers;
 
@@ -24,6 +25,47 @@ public class CarsController(CarService service) : ControllerBase
         {
             var valid = await _service.IsInsuranceValidAsync(carId, parsed);
             return Ok(new InsuranceValidityResponse(carId, parsed.ToString("yyyy-MM-dd"), valid));
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+    }
+
+    [HttpPost("cars/{carId:long}/claims")]
+    public async Task<ActionResult> RegisterInsuranceClaim(long carId, [FromBody] InsuranceClaimDto claimDto)
+    {
+        try
+        {
+            var claim = await _service.RegisterInsuranceClaim(carId, claimDto);
+            return CreatedAtAction(nameof(RegisterInsuranceClaim), new { carId = carId, claimId = claim.Id}, claim);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+    }
+
+    [HttpGet("cars/{carId:long}/history")]
+    public async Task<ActionResult<CarHistoryResponse>> GetCarHistory(long carId)
+    {
+        try
+        {
+            return Ok(await _service.GetCarHistory(carId));
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+    }
+
+    [HttpPatch("cars/{carId:long}")]
+    public async Task<ActionResult> UpdateCarOwner(long carId, [FromBody] UpdateCarOwnerDto dto)
+    {
+        try
+        {
+            await _service.UpdateCarOwner(carId, dto.NewOwnerId);
+            return NoContent();
         }
         catch (KeyNotFoundException)
         {
